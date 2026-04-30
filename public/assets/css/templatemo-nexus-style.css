@@ -9,6 +9,190 @@ https://templatemo.com/tm-594-nexus-flow
 @charset "utf-8";
 /* CSS Document */
 
+@import url(https://fonts.bunny.net/css?family=crushed:400);
+@layer demo;
+
+@layer demo {
+    :root {
+        /* UKURAN SEDANG (MODERATE) */
+        --card-w: 155px;
+        /* Ukuran lebar kartu lebih proporsional */
+        --card-aspect: 4/6;
+        --card-radius: 12px;
+        --radius-circle: 45vmin;
+        /* Kelengkungan busur */
+
+        /* ANIMASI */
+        --duration: 600ms;
+        --easing: cubic-bezier(0.22, 1, 0.36, 1);
+
+        /* KONFIGURASI BUSUR */
+        --arc-size: 0.25;
+        --arc-center: 0.75;
+        --arc-start: calc(var(--arc-center) - var(--arc-size) / 2);
+        --shift-delta: 0.02;
+    }
+
+    .wrapper {
+        position: relative;
+        width: var(--card-w);
+        aspect-ratio: var(--card-aspect);
+        /* Memberi ruang untuk busur ke atas */
+        transform: translateY(50px);
+    }
+
+    /* ITEM KARTU */
+    .wrapper>div {
+        --card-i: sibling-index();
+        --cards: sibling-count();
+
+        /* Fallback Browser Lama */
+        @supports not (order: sibling-index()) {
+            &:nth-child(1) {
+                --card-i: 1;
+            }
+
+            &:nth-child(2) {
+                --card-i: 2;
+            }
+
+            &:nth-child(3) {
+                --card-i: 3;
+            }
+
+            &:nth-child(4) {
+                --card-i: 4;
+            }
+
+            &:nth-child(5) {
+                --card-i: 5;
+            }
+
+            &:nth-child(6) {
+                --card-i: 6;
+            }
+
+            &:nth-child(7) {
+                --card-i: 7;
+            }
+
+            --cards: 7;
+        }
+
+        --arc-step: calc(var(--arc-size) / (var(--cards) - 1));
+        --dist: calc((var(--arc-start) + (var(--card-i) - 1) * var(--arc-step) + var(--arc-shift, 0)) * 100%);
+
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: white;
+        border-radius: var(--card-radius);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+
+        /* Gerakan Busur */
+        offset-path: circle(var(--radius-circle) at 50% 100%);
+        offset-distance: var(--dist);
+        offset-rotate: auto;
+        offset-anchor: 50% 0%;
+
+        transition: offset-distance var(--duration) var(--easing),
+        offset-anchor var(--duration) var(--easing),
+        transform var(--duration) var(--easing),
+        z-index 0s var(--duration);
+
+        /* Layering: Kartu tengah (ke-4) selalu paling depan */
+        z-index: calc(10 - abs(4 - var(--card-i)));
+    }
+
+    /* EFEK HOVER: KARTU NAIK */
+    .wrapper>div:hover {
+        offset-anchor: 50% 20%;
+        /* Membuat kartu terangkat lebih tinggi saat di-hover */
+        z-index: 100 !important;
+        transform: scale(1.1);
+        /* Sedikit membesar saat dipilih */
+        transition: all var(--duration) var(--easing), z-index 0s;
+    }
+
+    /* LABEL/JUDUL KARTU */
+    .card-title {
+        position: absolute;
+        /* Ubah bagian ini agar ke tengah bawah */
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        background: rgba(0, 0, 0, 0.75);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        backdrop-filter: blur(5px);
+        transition: all var(--duration) var(--easing);
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+
+    .wrapper>div:hover .card-title {
+        bottom: -20%;
+        left: 50%;
+        transform: translate(-50%, 50%);
+
+        font-size: 1.1rem;
+        background: rgba(14, 165, 233, 0.95);
+        padding: 10px 20px;
+    }
+
+    /* LOGIKA GESER TETANGGA (INTERAKSI) */
+    .wrapper>div:hover+div {
+        --arc-shift: calc(var(--shift-delta) * 2.5);
+    }
+
+    .wrapper>div:hover+div+div {
+        --arc-shift: var(--shift-delta);
+    }
+
+    .wrapper>div:has(+ *:hover) {
+        --arc-shift: calc(var(--shift-delta) * -2.5);
+    }
+
+    .wrapper>div:has(+ * + *:hover) {
+        --arc-shift: calc(var(--shift-delta) * -1);
+    }
+
+    .wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: inherit;
+        display: block;
+    }
+
+    /* RESPONSIVE UNTUK HP */
+    @media (max-width: 768px) {
+        :root {
+            --card-w: 130px;
+            --radius-circle: 55vmin;
+            /* Sesuaikan center untuk 3 kartu agar kartu tengah (ke-2) di atas */
+            --arc-center: 0.75;
+            --arc-size: 0.15;
+            /* Diperkecil supaya jarak antar 3 kartu tidak terlalu jauh */
+        }
+
+        /* Logika Z-Index untuk 3 kartu: kartu ke-2 selalu paling depan */
+        .wrapper>div {
+            z-index: calc(10 - abs(2 - var(--card-i)));
+        }
+
+        .wrapper {
+            transform: translateY(0);
+        }
+    }
+
+}
+
+
 * {
     margin: 0;
     padding: 0;
@@ -1694,4 +1878,111 @@ nav {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(var(--primary-pink), var(--primary-cyan));
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pagination-wrapper a, 
+.pagination-wrapper span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 45px;
+    height: 45px;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    backdrop-filter: blur(10px);
+}
+
+/* State Aktif (Menggunakan warna Cyan/Sky Blue kamu) */
+.pagination-wrapper .active-page {
+    background: linear-gradient(135deg, var(--primary-orange), var(--primary-purple)) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+    transform: scale(1.05);
+}
+
+/* Hover Effect */
+.pagination-wrapper a:hover {
+    background: rgba(14, 165, 233, 0.1);
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Tombol Prev/Next Khusus */
+.btn-nav {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-primary) !important;
+}
+
+.pagination-wrapper .disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: rgba(255,255,255,0.05);
+}
+
+.mode-container {
+  display: inline-flex;
+  padding: 0.25rem; /* p-1 */
+  background-color: rgba(17, 24, 39, 0.8); /* bg-gray-900/80 */
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem; /* rounded-xl */
+  margin-bottom: 2rem; /* mb-8 */
+}
+.mode-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: 1px solid transparent; /* Untuk transisi border */
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efek Hover */
+.mode-btn:hover {
+  color: var(--primary-cyan);
+  background: rgba(14, 165, 233, 0.1); /* Tipis saja */
+}
+
+/* State Aktif (Yang Paling Bagus) */
+.mode-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-orange), var(--primary-purple));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 4px 15px rgba(99, 102, 241, 0.4), /* Glow ungu */
+    inset 0 1px 1px rgba(255, 255, 255, 0.3); /* Highlight di bagian atas */
+  transform: translateY(-1px);
+}
+
+/* Tambahkan sedikit feedback saat diklik */
+.mode-btn:active {
+  transform: scale(0.95);
+}
+@media (min-width: 768px) {
+  .mode-btn {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    font-size: 1rem;
+  }
 }

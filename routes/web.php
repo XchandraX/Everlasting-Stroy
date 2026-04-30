@@ -1,12 +1,28 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ImageController;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\ImageController;
+use App\Http\Controllers\Admin\CategoryController;
 
-Route::get('/', function () {
-    return view('welcome');
+// --- PUBLIC ROUTES ---
+Route::get('/', [PublicController::class, 'index'])->name('home');
+Route::get('/category', [PublicController::class, 'categories'])->name('categories.index');
+Route::get('/category/{id}', [PublicController::class, 'showCategory'])->name('categories.show');
+Route::get('/search', [PublicController::class, 'search'])->name('search');
+
+// --- AUTH ROUTES ---
+Route::get('/login', [AuthController::class, 'login'])->name('login')->middleware('guest');
+Route::post('/login', [AuthController::class, 'authenticate']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// --- ADMIN ROUTES (Terproteksi Middleware Auth) ---
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
+
+    Route::resource('images', ImageController::class);
+    Route::resource('categories', CategoryController::class);
 });
-
-Route::get('/', [ImageController::class, 'index'])->name('index');
-Route::get('/upload', [ImageController::class, 'create'])->name('create');
-Route::get('/upload', [ImageController::class, 'store'])->name('store');

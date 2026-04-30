@@ -9,8 +9,12 @@ class Image extends Model
     //
     protected $fillable = [
         'title',
+        'kategori_id',
         'deskription',
         'file_path',
     ];
 
+    public function kategori(){
+        return $this->belongsTo(Kategori::class);
+    }
 }
