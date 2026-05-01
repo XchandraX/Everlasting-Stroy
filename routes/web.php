@@ -26,3 +26,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('images', ImageController::class);
     Route::resource('categories', CategoryController::class);
 });
+
+Route::get('/test-db', function () {
+    try {
+        $pdo = DB::connection()->getPdo();
+        return "Koneksi berhasil. Driver: " . DB::connection()->getDriverName();
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});

@@ -13,7 +13,7 @@
             <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Active_Data_Stream</p>
             <div class="relative aspect-video rounded-3xl overflow-hidden border border-white/5 bg-black/40 backdrop-blur-md">
                 @if($category->cover_image)
-                    <img src="{{ asset('storage/' . $category->cover_image) }}" id="imagePreview" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition">
+                    <img src="{{ $category->cover_image }}" id="imagePreview" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                 @else
                     <div class="w-full h-full flex items-center justify-center text-gray-700 font-mono text-xs">NO_IMAGE_FOUND</div>
@@ -28,11 +28,11 @@
             <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                
+
                 <div class="space-y-6">
                     <div>
                         <label class="block text-[10px] font-mono text-pink-500 uppercase tracking-widest mb-2">Category_Name</label>
-                        <input type="text" name="nama_kategori" value="{{ $category->nama_kategori }}" required 
+                        <input type="text" name="nama_kategori" value="{{ $category->nama_kategori }}" required
                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-pink-500/50 outline-none transition font-mono text-sm">
                     </div>
 

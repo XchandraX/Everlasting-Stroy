@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->foreignId('kategori_id')->constrained('kategoris')->onDelete('cascade');
-            $table->text('deskription')->nullable();    
+            $table->text('deskription')->nullable();
             $table->string('file_path');
+            $table->enum('media_type', ['image', 'video']);
             $table->timestamps();
         });
     }

@@ -7,7 +7,7 @@
     <title>Everlasting Story</title>
     <link rel="stylesheet" href="{{ asset('assets/css/templatemo-nexus-style.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <script>
         tailwind.config = {
             corePlugins: {
@@ -15,7 +15,7 @@
             }
         }
     </script>
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
 </head>
@@ -40,7 +40,7 @@
     <nav class="z-[10000]">
         <div class="nav-container">
             <a href="/" class="logo">EVERLASTING</a>
-            
+
             <ul class="nav-links">
                 <li>
                     <a href="/" class="hover:text-cyan-400 transition">Home</a>
@@ -49,11 +49,11 @@
                     <a href="{{ route('categories.index') }}" class="hover:text-cyan-400 transition">Categories</a>
                 </li>
             </ul>
-            
+
             <div class="nav-bottom hidden md:block">
                 <a href="/login" class="cyber-button">Access Terminal</a>
             </div>
-            
+
             <button class="mobile-menu-button" id="mobileMenuBtn">
                 <div class="hamburger">
                     <span></span>
@@ -83,7 +83,7 @@
             <a href="/login" class="cyber-button block w-full text-center">Access Terminal</a>
         </div>
     </div>
-    
+
     <main class="relative z-10 pt-28 md:pt-20">
         @yield('content')
     </main>
@@ -94,13 +94,38 @@
         </div>
     </footer>
 
-    <script src="{{ asset('assets/js/templatemo-nexus-scripts.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
-    <script>
-        const lightbox = GLightbox({
-            selector: '.glightbox'
-        });
-    </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+<script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+    const lightbox = GLightbox({
+        selector: '.glightbox',
+        touchNavigation: true,
+        loop: false,
+        autoplayVideos: true,
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+    const mobileMenuClose = document.getElementById('mobileMenuClose');
+
+    function openMenu() {
+        mobileMenu.classList.add('active');
+        mobileMenuOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMenu() {
+        mobileMenu.classList.remove('active');
+        mobileMenuOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    mobileMenuBtn.addEventListener('click', openMenu);
+    mobileMenuClose.addEventListener('click', closeMenu);
+    mobileMenuOverlay.addEventListener('click', closeMenu);
+});
+</script>
 </body>
 
 </html>

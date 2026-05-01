@@ -5,27 +5,19 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Image;
 use App\Models\Kategori;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ImageController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil semua kategori untuk ditampilkan di tombol filter
         $categories = Kategori::all();
-
-        // 2. Mulai query gambar
         $query = Image::with('kategori');
-
-        // 3. Cek apakah ada filter 'category' di URL
         if ($request->has('category') && $request->category != '') {
             $query->where('kategori_id', $request->category);
         }
-
-        // 4. Urutkan yang terbaru dan gunakan pagination
-        // appends() memastikan filter kategori tidak hilang saat pindah halaman (pagination)
-        $images = $query->latest()->paginate(1)->appends($request->query());
+        $images = $query->latest()->paginate(5)->appends($request->query());
 
         return view('admin.images.index', compact('images', 'categories'));
     }
@@ -49,7 +41,7 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'kategori_id' => 'required|exists:kategoris,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // nullable karena foto tidak wajib ganti
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,avi,mov,mkv,webm|max:20480',
         ]);
 
         $data = [
@@ -58,19 +50,36 @@ class ImageController extends Controller
             'description' => $request->description,
         ];
 
-        // Jika ada file gambar baru yang diunggah
         if ($request->hasFile('image')) {
-            // Hapus foto lama
             if ($image->file_path) {
-                \Storage::disk('public')->delete($image->file_path);
+                $publicId = $this->extractPublicIdFromUrl($image->file_path);
+                if ($publicId) {
+                    try {
+                        cloudinary()->uploadApi()->destroy($publicId);
+                    } catch (\Exception $e) {
+                    }
+                }
             }
-            // Simpan foto baru
-            $data['file_path'] = $request->file('image')->store('images', 'public');
+
+            $file = $request->file('image');
+            $ext = $file->getClientOriginalExtension();
+            $type = in_array($ext, ['mp4', 'avi', 'mov', 'mkv', 'webm']) ? 'video' : 'image';
+
+            $result = cloudinary()->uploadApi()->upload($file->getRealPath(), [
+                'folder' => ($type === 'video' ? 'videos' : 'images'),
+                'resource_type' => $type,
+            ]);
+
+            $image->file_path = $result['secure_url'];
+            $image->media_type = $type;
         }
 
-        $image->update($data);
+        $image->title = $request->title;
+        $image->kategori_id = $request->kategori_id;
+        $image->description = $request->description;
+        $image->save();
 
-        return redirect()->route('admin.images.index')->with('success', 'Node Data Updated Successfully!');
+        return redirect()->route('admin.images.index')->with('success', 'Node Data Updated!');
     }
 
     public function store(Request $request)
@@ -78,30 +87,73 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'kategori_id' => 'required|exists:kategoris,id',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'files.*' => 'required|file|mimes:jpeg,png,jpg,gif,mp4,avi,mov,mkv,webm|max:20480',
         ]);
 
-        $path = $request->file('image')->store('images', 'public');
+        $successCount = 0;
+        $processedHashes = [];
 
-        Image::create([
-            'title' => $request->title,
-            'kategori_id' => $request->kategori_id,
-            'description' => $request->description,
-            'file_path' => $path,
-        ]);
+        // Pastikan ada loop foreach di sini agar $file terdefinisi
+        foreach ($request->file('files') as $file) {
+            // Cek duplikasi file menggunakan MD5 hash
+            $hash = md5_file($file->getRealPath());
+            if (in_array($hash, $processedHashes)) {
+                continue;
+            }
+            $processedHashes[] = $hash;
 
-        return redirect()->route('admin.images.index')->with('success', 'Data Cluster Berhasil Diperbarui!');
+            try {
+                $ext = $file->getClientOriginalExtension();
+                $type = in_array($ext, ['mp4', 'avi', 'mov', 'mkv', 'webm']) ? 'video' : 'image';
+
+                // Menggunakan uploadApi() yang sudah berhasil di tes
+                $result = cloudinary()->uploadApi()->upload($file->getRealPath(), [
+                    'folder' => ($type === 'video' ? 'videos' : 'images'),
+                    'resource_type' => $type,
+                ]);
+
+                Image::create([
+                    'title' => $request->title,
+                    'kategori_id' => $request->kategori_id,
+                    'description' => $request->description,
+                    'file_path' => $result['secure_url'], // Mengambil URL dari array hasil
+                    'media_type' => $type,
+                ]);
+
+                $successCount++; // Naikkan angka sukses
+            } catch (\Exception $e) {
+                \Log::error('Cloudinary Error: '.$e->getMessage());
+                // Jika ingin fallback ke lokal saat Cloudinary gagal:
+                // $path = $file->store($type === 'video' ? 'videos' : 'images', 'public');
+            }
+        }
+
+        return redirect()->route('admin.images.index')
+            ->with('success', $successCount.' Data Cluster Berhasil Ditambahkan!');
     }
 
     public function destroy(Image $image)
     {
-        // Hapus file fisik dari storage agar tidak memenuhi server
         if ($image->file_path) {
-            Storage::disk('public')->delete($image->file_path);
+            $publicId = $this->extractPublicIdFromUrl($image->file_path);
+            if ($publicId) {
+                Cloudinary::destroy($publicId);
+            }
         }
-
         $image->delete();
 
         return back()->with('success', 'Node Data Telah Dihapus!');
+    }
+
+    // Helper untuk mengambil public_id dari URL Cloudinary
+    private function extractPublicIdFromUrl($url)
+    {
+        // Contoh URL: https://res.cloudinary.com/.../upload/v1234567890/folder/filename.jpg
+        $pattern = '/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/';
+        if (preg_match($pattern, $url, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 }

@@ -17,7 +17,7 @@
                 <div class="space-y-6">
                     <div>
                         <label class="block text-[10px] font-mono text-cyan-500 uppercase tracking-widest mb-2">Category_Name</label>
-                        <input type="text" name="nama_kategori" placeholder="E.G. MOMENTS_IN_TOKYO" required 
+                        <input type="text" name="nama_kategori" placeholder="E.G. MOMENTS_IN_TOKYO" required
                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-500/50 outline-none transition font-mono text-sm">
                     </div>
 
@@ -40,6 +40,15 @@
                     </div>
                 </div>
             </form>
+            @if ($errors->any())
+    <div class="bg-red-500/20 border border-red-500 rounded-xl p-4 mb-6">
+        <ul class="text-red-300 text-xs font-mono space-y-1">
+            @foreach ($errors->all() as $error)
+                <li>⚠️ {{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
         </div>
 
         <div class="border border-white/10 rounded-3xl bg-black/20 flex flex-col items-center justify-center p-6 relative group overflow-hidden">
@@ -49,7 +58,7 @@
                     <img id="imagePreview" class="w-full h-full object-cover">
                 </div>
             </div>
-            
+
             <div id="placeholder" class="text-center opacity-40">
                 <i class="bi bi-folder-plus text-5xl mb-4 block"></i>
                 <p class="text-[10px] font-mono uppercase tracking-widest">Awaiting_Visual_Data</p>

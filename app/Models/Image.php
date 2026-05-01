@@ -12,6 +12,7 @@ class Image extends Model
         'kategori_id',
         'deskription',
         'file_path',
+        'media_type'
     ];
 
     public function kategori(){

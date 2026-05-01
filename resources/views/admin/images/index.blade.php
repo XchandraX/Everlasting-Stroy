@@ -37,14 +37,30 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @forelse($images as $image)
-                <div
-                    class="group bg-black/40 border border-white/5 p-4 rounded-2xl hover:border-cyan-500/50 transition-all duration-500 hover:shadow-[0_0_25px_rgba(6,182,212,0.1)] backdrop-blur-sm relative overflow-hidden">
+                <div class="group bg-black/40 border border-white/5 p-4 rounded-2xl hover:border-cyan-500/50 transition-all duration-500 hover:shadow-[0_0_25px_rgba(6,182,212,0.1)] backdrop-blur-sm relative overflow-hidden">
                     <div class="relative h-48 overflow-hidden rounded-xl mb-4 bg-slate-900">
-                        <img src="{{ asset('storage/' . $image->file_path) }}"
-                            class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition duration-700">
+@if ($image->media_type == 'video')
+    @php
+        $thumbUrl = preg_replace('/\/upload\/(v\d+\/)?/', '/upload/so_0.5/', $image->file_path);
+        $thumbUrl = preg_replace('/\.(mp4|webm|mov|avi|mkv)$/', '.jpg', $thumbUrl);
+        // Cek apakah file_path adalah URL valid (Cloudinary) atau path lokal
+        $videoSrc = filter_var($image->file_path, FILTER_VALIDATE_URL) ? $image->file_path : asset('storage/' . $image->file_path);
+        $posterSrc = filter_var($thumbUrl, FILTER_VALIDATE_URL) ? $thumbUrl : asset('storage/' . $thumbUrl);
+    @endphp
+    <video src="{{ $videoSrc }}"
+        class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition duration-700"
+        muted preload="metadata" poster="{{ $posterSrc }}"></video>
+    <div class="absolute top-3 right-3 bg-pink-600 text-[8px] px-1 py-0.5 rounded">VIDEO</div>
+@else
+    @php
+        // Cek apakah file_path adalah URL valid (Cloudinary) atau path lokal
+        $imgSrc = filter_var($image->file_path, FILTER_VALIDATE_URL) ? $image->file_path : asset('storage/' . $image->file_path);
+    @endphp
+    <img src="{{ $imgSrc }}"
+        class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition duration-700">
+@endif
                         <div class="absolute top-3 left-3">
-                            <span
-                                class="bg-black/80 text-[9px] text-cyan-400 px-2 py-1 border border-cyan-500/30 rounded font-mono">
+                            <span class="bg-black/80 text-[9px] text-cyan-400 px-2 py-1 border border-cyan-500/30 rounded font-mono">
                                 #{{ str_pad($image->id, 4, '0', STR_PAD_LEFT) }}
                             </span>
                         </div>
@@ -60,12 +76,10 @@
                             Modify
                         </a>
 
-                        <form action="{{ route('admin.images.destroy', $image->id) }}" method="POST"
-                            class="delete-form flex-1">
+                        <form action="{{ route('admin.images.destroy', $image->id) }}" method="POST" class="delete-form flex-1">
                             @csrf
                             @method('DELETE')
-                            <button type="button"
-                                class="delete-btn w-full py-2 bg-pink-500/5 hover:bg-pink-600 hover:text-white rounded-lg text-[9px] font-black text-pink-600 transition-all border border-pink-500/20 uppercase tracking-widest">
+                            <button type="button" class="delete-btn w-full py-2 bg-pink-500/5 hover:bg-pink-600 hover:text-white rounded-lg text-[9px] font-black text-pink-600 transition-all border border-pink-500/20 uppercase tracking-widest">
                                 Erase
                             </button>
                         </form>
@@ -81,25 +95,20 @@
 
         <div class="mt-16 mb-12 flex flex-col items-center">
             <div class="pagination-wrapper flex items-center gap-2">
-
-                {{-- 1. FIRST PAGE (Kembali ke paling awal) --}}
                 @if ($images->currentPage() > 3)
                     <a href="{{ $images->url(1) }}" class="btn-nav-terminal" title="First Page">
                         <i class="bi bi-chevron-double-left"></i>
                     </a>
                 @endif
 
-                {{-- 3. DYNAMIC NUMBERS --}}
                 <div class="hidden md:flex items-center gap-2">
                     @foreach ($images->getUrlRange(max(1, $images->currentPage() - 2), min($images->lastPage(), $images->currentPage() + 2)) as $page => $url)
                         @if ($page == $images->currentPage())
                             <div class="relative">
-                                <span
-                                    class="btn-nav-terminal border-cyan-500 text-pink-500 bg-cyan-500/10 shadow-[0_0_15px_rgba(6,182,212,0.2)] font-bold">
+                                <span class="btn-nav-terminal border-cyan-500 text-pink-500 bg-cyan-500/10 shadow-[0_0_15px_rgba(6,182,212,0.2)] font-bold">
                                     {{ str_pad($page, 2, '0', STR_PAD_LEFT) }}
                                 </span>
-                                <div class="absolute -bottom-1 left-0 w-full h-0.5 bg-pink-500 shadow-[0_0_10px_#db2777]">
-                                </div>
+                                <div class="absolute -bottom-1 left-0 w-full h-0.5 bg-pink-500 shadow-[0_0_10px_#db2777]"></div>
                             </div>
                         @else
                             <a href="{{ $url }}" class="btn-nav-terminal hover:text-cyan-400">
@@ -109,7 +118,6 @@
                     @endforeach
                 </div>
 
-                {{-- 5. LAST PAGE (Loncat ke paling akhir) --}}
                 @if ($images->currentPage() < $images->lastPage() - 2)
                     <span class="text-gray-700 px-1 font-black">...</span>
                     <a href="{{ $images->url($images->lastPage()) }}" class="btn-nav-terminal" title="Last Page">
@@ -118,7 +126,6 @@
                 @endif
             </div>
 
-            {{-- System Status Footer --}}
             <p class="mt-8 text-[9px] text-gray-600 uppercase tracking-[0.4em] text-center font-mono">
                 <span class="text-cyan-500 animate-pulse">●</span>
                 NODE_POS: {{ $images->currentPage() }} / {{ $images->lastPage() }}
@@ -126,6 +133,5 @@
                 TOTAL_STREAM: {{ $images->total() }}
             </p>
         </div>
-
     </div>
 @endsection

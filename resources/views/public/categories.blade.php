@@ -12,7 +12,7 @@
         <a href="{{ route('categories.show', $cat->id) }}" class="group block">
             <div class="relative h-56 md:h-64 w-full overflow-hidden rounded-2xl bg-gray-800/50 border border-white/5 mb-4">
                 @if($cat->cover_image)
-                    <img src="{{ asset('storage/' . $cat->cover_image) }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-110">
+                    <img src="{{ $cat->cover_image }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-110">
                 @endif
                 <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition"></div>
             </div>

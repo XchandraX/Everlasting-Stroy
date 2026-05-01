@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kategori;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
@@ -23,30 +23,30 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validasi agar tidak kosong
         $request->validate([
             'nama_kategori' => 'required|string|max:255',
-            'cover_image' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // 2. Simpan data
         $kategori = new Kategori;
-        $kategori->nama_kategori = $request->nama_kategori; // Pastikan baris ini ada!
+        $kategori->nama_kategori = $request->nama_kategori;
 
         if ($request->hasFile('cover_image')) {
-            $path = $request->file('cover_image')->store('categories', 'public');
-            $kategori->cover_image = $path;
+            try {
+                $file = $request->file('cover_image');
+                // Menggunakan uploadApi() yang berhasil di Tinker
+                $uploadResult = cloudinary()->uploadApi()->upload($file->getRealPath(), [
+                    'folder' => 'category_covers',
+                ]);
+                $kategori->cover_image = $uploadResult['secure_url'];
+            } catch (\Exception $e) {
+                \Log::error('Cloudinary Error: '.$e->getMessage());
+                $kategori->cover_image = $request->file('cover_image')->store('categories', 'public');
+            }
         }
 
         $kategori->save();
-
         return redirect()->route('admin.categories.index')->with('success', 'Node created!');
-    }
-
-    public function edit(Kategori $category)
-    {
-        // Variabel dikirim dengan nama $category agar sesuai dengan route model binding
-        return view('admin.categories.edit', compact('category'));
     }
 
     public function update(Request $request, Kategori $category)
@@ -59,30 +59,59 @@ class CategoryController extends Controller
         $category->nama_kategori = $request->nama_kategori;
 
         if ($request->hasFile('cover_image')) {
-            // Hapus foto cover lama jika ada file baru
+            // Hapus cover lama
             if ($category->cover_image) {
-                Storage::disk('public')->delete($category->cover_image);
+                $publicId = $this->extractPublicIdFromUrl($category->cover_image);
+                if ($publicId) {
+                    try {
+                        cloudinary()->uploadApi()->destroy($publicId);
+                    } catch (\Exception $e) {}
+                }
             }
 
-            $path = $request->file('cover_image')->store('categories', 'public');
-            $category->cover_image = $path;
+            // Upload cover baru
+            $uploadResult = cloudinary()->uploadApi()->upload($request->file('cover_image')->getRealPath(), [
+                'folder' => 'category_covers',
+            ]);
+            $category->cover_image = $uploadResult['secure_url'];
         }
 
         $category->save();
-
         return redirect()->route('admin.categories.index')->with('success', 'Node Data Reconfigured!');
     }
 
-    // (Opsional: Tambahkan method edit() dan update() sesuai kebutuhan)
+    public function edit(Kategori $category)
+    {
+        return view('admin.categories.edit', compact('category'));
+    }
 
     public function destroy(Kategori $category)
     {
-        // Hapus gambar cover jika ada
+        // Hapus gambar cover dari Cloudinary jika ada
         if ($category->cover_image) {
-            Storage::disk('public')->delete($category->cover_image);
+            $publicId = $this->extractPublicIdFromUrl($category->cover_image);
+            if ($publicId) {
+                Cloudinary::destroy($publicId);
+            }
         }
         $category->delete();
 
         return redirect()->route('admin.categories.index')->with('success', 'Kategori dihapus!');
+    }
+
+    /**
+     * Helper: Extract public_id dari URL Cloudinary
+     * Contoh URL: https://res.cloudinary.com/.../upload/v1234567/category_covers/filename.jpg
+     * Hasil: category_covers/filename
+     */
+    private function extractPublicIdFromUrl($url)
+    {
+        // Hapus bagian sebelum '/upload/'
+        if (preg_match('/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/', $url, $matches)) {
+            // Hapus ekstensi file di akhir (misal .jpg, .png)
+            return preg_replace('/\.[a-z]+$/', '', $matches[1]);
+        }
+
+        return null;
     }
 }

@@ -32,7 +32,8 @@
         <div class="group relative bg-gray-900/50 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
             <div class="h-56 md:h-64 overflow-hidden">
                 @if($cat->cover_image)
-                    <img src="{{ asset('storage/' . $cat->cover_image) }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-110 group-hover:scale-100">
+                    {{-- Langsung gunakan $cat->cover_image karena sudah URL Cloudinary --}}
+                    <img src="{{ $cat->cover_image }}" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 scale-110 group-hover:scale-100">
                 @endif
             </div>
             <div class="p-5 md:p-6">
@@ -47,4 +48,18 @@
         @endforeach
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fadeElements = document.querySelectorAll('.fade-up');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        fadeElements.forEach(el => observer.observe(el));
+    });
+</script>
 @endsection
