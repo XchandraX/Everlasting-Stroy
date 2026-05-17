@@ -8,9 +8,8 @@
     <link href="{{ asset('assets/css/templatemo-nexus-style.css') }}" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="shortcut icon" href="{{ asset('assets/icon/Everlasting.png') }}">
-
-    <script>
+<link rel="shortcut icon" href="{{ asset('assets/Everlasting.png') }}" type="image/x-icon">
+<link rel="icon" type="image/png" href="{{ asset('assets/Everlasting.png') }}">    <script>
         tailwind.config = {
             corePlugins: {
                 preflight: false, // Mematikan preflight agar tidak bentrok dengan CSS manual

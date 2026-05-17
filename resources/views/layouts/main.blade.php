@@ -7,9 +7,8 @@
     <title>Everlasting Story</title>
     <link rel="stylesheet" href="{{ asset('assets/css/templatemo-nexus-style.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="shortcut icon" href="{{ asset('assets/icon/Everlasting.png') }}">
-
-    <script>
+<link rel="shortcut icon" href="{{ asset('assets/Everlasting.png') }}" type="image/x-icon">
+<link rel="icon" type="image/png" href="{{ asset('assets/Everlasting.png') }}">    <script>
         tailwind.config = {
             corePlugins: {
                 preflight: false,
@@ -123,12 +122,17 @@
                 mobileMenuOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
-            mobileMenuBtn.addEventListener('click',
+
+            // Perbaikan: gunakan fungsi toggle yang benar
+            mobileMenuBtn.addEventListener('click', function() {
+                const isOpen = mobileMenu.classList.contains('active');
                 if (isOpen) {
                     closeMenu();
                 } else {
                     openMenu();
-                });
+                }
+            });
+
             mobileMenuClose.addEventListener('click', closeMenu);
             mobileMenuOverlay.addEventListener('click', closeMenu);
         });
