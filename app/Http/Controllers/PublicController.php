@@ -28,15 +28,20 @@ class PublicController extends Controller
     }
 
     // Menampilkan foto-foto di dalam satu kategori
-    public function showCategory($id)
+    public function showCategory(Request $request, $id)
     {
         $category = Kategori::findOrFail($id);
-        $images = Image::where('kategori_id', $id)
-            ->latest()
-            ->paginate(12)
-            ->withQueryString(); // Tambahkan ini
+        $filter = $request->get('filter', 'image'); // default image
 
-        return view('public.category_show', compact('category', 'images'));
+        $images = Image::where('kategori_id', $id);
+        if ($filter === 'image') {
+            $images->where('media_type', 'image');
+        } elseif ($filter === 'video') {
+            $images->where('media_type', 'video');
+        }
+        $images = $images->latest()->paginate(12)->withQueryString();
+
+        return view('public.category_show', compact('category', 'images', 'filter'));
     }
 
     // Fitur Pencarian Foto

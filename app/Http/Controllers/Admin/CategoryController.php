@@ -85,19 +85,25 @@ class CategoryController extends Controller
         return view('admin.categories.edit', compact('category'));
     }
 
-    public function destroy(Kategori $category)
-    {
-        // Hapus gambar cover dari Cloudinary jika ada
-        if ($category->cover_image) {
-            $publicId = $this->extractPublicIdFromUrl($category->cover_image);
-            if ($publicId) {
-                Cloudinary::destroy($publicId);
-            }
-        }
-        $category->delete();
+public function destroy(Kategori $category)
+{
+    // Hapus gambar cover dari Cloudinary jika ada
+    if ($category->cover_image) {
+        $publicId = $this->extractPublicIdFromUrl($category->cover_image);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Kategori dihapus!');
+        if ($publicId) {
+            // Ambil instance SDK Cloudinary dari service container
+            $cloudinary = app(\Cloudinary\Cloudinary::class);
+
+            // Eksekusi penghapusan gambar sesuai standar SDK v2
+            $cloudinary->uploadApi()->destroy($publicId);
+        }
     }
+
+    $category->delete();
+
+    return redirect()->route('admin.categories.index')->with('success', 'Kategori dihapus!');
+}
 
     /**
      * Helper: Extract public_id dari URL Cloudinary

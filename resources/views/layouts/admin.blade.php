@@ -104,6 +104,25 @@
             /* Cyan */
             transform: scale(1.2);
         }
+
+        /* Mobile sidebar fix */
+        @media (max-width: 768px) {
+            #sidebar {
+                z-index: 9999 !important;
+                background-color: #020617 !important;
+                transition: transform 0.3s ease-in-out !important;
+            }
+
+            #sidebarOverlay {
+                z-index: 9998 !important;
+                background-color: rgba(0, 0, 0, 0.85) !important;
+                pointer-events: auto !important;
+            }
+
+            #sidebar * {
+                pointer-events: auto !important;
+            }
+        }
     </style>
 </head>
 
@@ -130,15 +149,13 @@
     </div>
 
     <!-- OVERLAY (Latar gelap saat menu HP terbuka) -->
-    <div id="sidebarOverlay"
-        class="fixed inset-0 bg-black/80 z-[80] hidden transition-opacity duration-300 opacity-0 md:hidden"></div>
-
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/80 z-[9998] md:hidden" style="display: none;"></div>
     <div class="flex min-h-screen relative z-10">
 
         <!-- SIDEBAR (Disesuaikan untuk Mobile & Desktop) -->
         <!-- Tambahan class: fixed, transform, -translate-x-full untuk sembunyi di HP, dan md:relative md:translate-x-0 untuk tampil di Desktop -->
         <aside id="sidebar"
-            class="w-72 bg-black/90 md:bg-black/80 backdrop-blur-2xl border-r border-cyan-500/20 flex flex-col h-screen fixed md:sticky top-0 z-[100] shadow-[10px_0_30px_rgba(0,0,0,0.5)] overflow-hidden transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            class="w-72 bg-black/90 md:bg-black/80 border-r border-cyan-500/20 flex flex-col h-screen fixed md:sticky top-0 z-[9999] shadow-[10px_0_30px_rgba(0,0,0,0.5)] overflow-hidden transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
 
             <div class="scanline-effect absolute inset-0 pointer-events-none opacity-10"></div>
 
@@ -151,9 +168,7 @@
                     <p class="text-[10px] text-gray-500 mt-2 uppercase tracking-tighter font-mono m-0 p-0">//
                         System_Authenticated</p>
                 </div>
-                <button id="closeMenuBtn" class="md:hidden text-pink-500">
-                    <i class="bi bi-x-lg text-xl"></i>
-                </button>
+
             </div>
 
             <!-- Navigasi Sidebar -->
@@ -239,26 +254,34 @@
     <!-- SCRIPT BARU UNTUK MENGATUR SIDEBAR MOBILE -->
     <script>
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const closeMenuBtn = document.getElementById('closeMenuBtn');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
 
-        function toggleMenu() {
-            const isClosed = sidebar.classList.contains('-translate-x-full');
-            if (isClosed) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-            }
+        function openMenu() {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            document.body.style.overflow = 'hidden';
         }
 
-        mobileMenuBtn.addEventListener('click', toggleMenu);
-        closeMenuBtn.addEventListener('click', toggleMenu);
-        overlay.addEventListener('click', toggleMenu);
+        function closeMenu() {
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+            document.body.style.overflow = '';
+        }
+
+        mobileMenuBtn.addEventListener('click', function() {
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            if (isOpen) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        });
+        overlay.addEventListener('click', closeMenu);
 
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn')) {

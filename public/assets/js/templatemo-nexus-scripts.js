@@ -8,6 +8,35 @@ https://templatemo.com/tm-594-nexus-flow
 
 // JavaScript Document
 
+// ========== DETEKSI PERANGKAT LEMAH (LOW-END MODE) ==========
+(function detectLowEndDevice() {
+    // Cek preferensi sistem (browser modern)
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Deteksi hardware dengan navigator.deviceMemory (jika ada)
+    const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory < 4;
+
+    // Deteksi jumlah CPU core (jika tersedia)
+    const hasLowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2;
+
+    // Deteksi layar sentuh + ukuran kecil (biasanya HP low-end)
+    const isSmallTouch = window.innerWidth <= 768 && 'ontouchstart' in window;
+
+    // Jika salah satu terpenuhi -> aktifkan mode low-end
+    const isLowEnd = prefersReduced || hasLowMemory || hasLowCPU || isSmallTouch;
+
+    if (isLowEnd) {
+        document.body.classList.add('low-end-mode');
+
+        // Nonaktifkan semua event mouse yang berat (glow, interaksi particle)
+        if (window.innerWidth <= 768) {
+            document.body.classList.add('disable-heavy-events');
+        }
+
+        console.log('[Performance] Low-end mode activated - heavy effects disabled');
+    }
+})();
+
 // Initialize mobile menu functionality
 function initializeMobileMenu() {
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -142,57 +171,66 @@ if (document.readyState === 'loading') {
 function generateMatrixRain() {
     const matrixRain = document.getElementById('matrixRain');
     if (!matrixRain) return;
+
+    // Jika low-end mode, jangan generate matrix rain
+    if (document.body.classList.contains('low-end-mode')) {
+        matrixRain.style.display = 'none';
+        return;
+    }
+
     const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-    const columns = Math.floor(window.innerWidth / 20);
+    const columns = Math.floor(window.innerWidth / 30); // lebih sedikit kolom
 
     for (let i = 0; i < columns; i++) {
         const column = document.createElement('div');
         column.className = 'matrix-column';
-        column.style.left = `${i * 20}px`;
-        column.style.animationDuration = `${Math.random() * 5 + 10}s`;
-        column.style.animationDelay = `${Math.random() * 5}s`;
+        column.style.left = `${i * 30}px`;
+        column.style.animationDuration = `${Math.random() * 8 + 12}s`; // lebih lambat
+        column.style.animationDelay = `${Math.random() * 8}s`;
 
-        // Generate random characters for the column
         let text = '';
-        const charCount = Math.floor(Math.random() * 20 + 10);
+        const charCount = Math.floor(Math.random() * 10 + 5);
         for (let j = 0; j < charCount; j++) {
             text += characters[Math.floor(Math.random() * characters.length)] + ' ';
         }
         column.textContent = text;
-
         matrixRain.appendChild(column);
     }
 }
 
 // Generate Floating Particles
 function generateParticles() {
-    // Tambahkan baris ini untuk mendefinisikan variabel 'container'
     const container = document.getElementById('particlesContainer');
-
-    // Tambahkan pengecekan agar tidak error jika elemen tidak ditemukan di halaman
     if (!container) return;
 
-    const particleCount = window.innerWidth < 768 ? 20 : 50;
+    // Low-end mode -> hanya 5 partikel statis (tidak bergerak)
+    const isLowEnd = document.body.classList.contains('low-end-mode');
+    const particleCount = isLowEnd ? 5 : (window.innerWidth < 768 ? 15 : 35);
 
     for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
 
-        // Pengaturan posisi acak
         const posX = Math.random() * 100;
         const posY = Math.random() * 100;
-        const size = Math.random() * 3 + 1;
-        const duration = Math.random() * 15 + 10;
-        const delay = Math.random() * 10;
+        const size = Math.random() * 2 + 1;
 
         particle.style.left = `${posX}%`;
         particle.style.top = `${posY}%`;
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
-        particle.style.animationDuration = `${duration}s`;
-        particle.style.animationDelay = `-${delay}s`;
 
-        // Sekarang variabel 'container' sudah aman digunakan
+        if (!isLowEnd) {
+            const duration = Math.random() * 20 + 15;
+            const delay = Math.random() * 10;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `-${delay}s`;
+        } else {
+            // Low-end: partikel diam, hanya opacity rendah
+            particle.style.animation = 'none';
+            particle.style.opacity = '0.2';
+        }
+
         container.appendChild(particle);
     }
 }
@@ -200,16 +238,22 @@ function generateParticles() {
 // Generate Data Streams
 function generateDataStreams() {
     const dataStreams = document.getElementById('dataStreams');
-    const streamCount = 10;
+    if (!dataStreams) return;
+
+    if (document.body.classList.contains('low-end-mode')) {
+        dataStreams.style.display = 'none';
+        return;
+    }
+
+    const streamCount = 6; // kurangi dari 10
 
     for (let i = 0; i < streamCount; i++) {
         const stream = document.createElement('div');
         stream.className = 'data-stream';
         stream.style.top = `${Math.random() * 100}%`;
         stream.style.left = `-300px`;
-        stream.style.animationDelay = `${Math.random() * 5}s`;
-        stream.style.transform = `rotate(${Math.random() * 30 - 15}deg)`;
-
+        stream.style.animationDelay = `${Math.random() * 6}s`;
+        stream.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
         dataStreams.appendChild(stream);
     }
 }
@@ -273,7 +317,7 @@ document.addEventListener('mousemove', (e) => {
 });
 
 // Add a glow that follows the cursor (desktop only)
-if (window.innerWidth > 768) {
+if (!document.body.classList.contains('low-end-mode') && window.innerWidth > 768) {
     const cursorGlow = document.createElement('div');
     cursorGlow.style.cssText = `
                 position: fixed;

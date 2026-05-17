@@ -27,11 +27,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('categories', CategoryController::class);
 });
 
-Route::get('/test-db', function () {
+Route::get('/keep-alive', function () {
     try {
-        $pdo = DB::connection()->getPdo();
-        return "Koneksi berhasil. Driver: " . DB::connection()->getDriverName();
+        // Lakukan query sederhana, misal ambil 1 data dari kategori
+        \App\Models\Kategori::first();
+        return response()->json(['status' => 'alive']);
     } catch (\Exception $e) {
-        return "Error: " . $e->getMessage();
+        return response()->json(['status' => 'error'], 500);
     }
 });

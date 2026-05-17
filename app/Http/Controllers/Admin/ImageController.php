@@ -17,7 +17,7 @@ class ImageController extends Controller
         if ($request->has('category') && $request->category != '') {
             $query->where('kategori_id', $request->category);
         }
-        $images = $query->latest()->paginate(5)->appends($request->query());
+        $images = $query->latest()->paginate(16)->appends($request->query());
 
         return view('admin.images.index', compact('images', 'categories'));
     }
@@ -41,7 +41,7 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'kategori_id' => 'required|exists:kategoris,id',
-            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,avi,mov,mkv,webm|max:20480',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,mp4,avi,mov,mkv,webm|max:204800',
         ]);
 
         $data = [
@@ -87,7 +87,7 @@ class ImageController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'kategori_id' => 'required|exists:kategoris,id',
-            'files.*' => 'required|file|mimes:jpeg,png,jpg,gif,mp4,avi,mov,mkv,webm|max:20480',
+            'files.*' => 'required|file|mimes:jpeg,png,jpg,gif,mp4,avi,mov,mkv,webm|max:204800',
         ]);
 
         $successCount = 0;
@@ -136,10 +136,17 @@ class ImageController extends Controller
     {
         if ($image->file_path) {
             $publicId = $this->extractPublicIdFromUrl($image->file_path);
+
             if ($publicId) {
-                Cloudinary::destroy($publicId);
+                // Cek apakah file berupa video berdasarkan string URL
+                $isVideo = str_contains($image->file_path, '/video/');
+                $options = $isVideo ? ['resource_type' => 'video'] : [];
+
+                // Eksekusi penghapusan sesuai standar SDK v2
+                cloudinary()->uploadApi()->destroy($publicId, $options);
             }
         }
+
         $image->delete();
 
         return back()->with('success', 'Node Data Telah Dihapus!');
