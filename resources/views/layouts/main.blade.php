@@ -7,6 +7,7 @@
     <title>Everlasting Story</title>
     <link rel="stylesheet" href="{{ asset('assets/css/templatemo-nexus-style.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="{{ asset('assets/icon/Everlasting.png') }}">
 
     <script>
         tailwind.config = {
