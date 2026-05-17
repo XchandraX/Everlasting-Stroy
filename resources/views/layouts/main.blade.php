@@ -7,8 +7,8 @@
     <title>Everlasting Story</title>
     <link rel="stylesheet" href="{{ asset('assets/css/templatemo-nexus-style.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="shortcut icon" href="{{ asset('assets/Everlasting.png') }}" type="image/x-icon">
-    <link rel="icon" type="image/png" href="{{ asset('assets/Everlasting.png') }}">
+    <link rel="shortcut icon" href="{{ asset('assets/icon/everlasting.png') }}" type="image/x-icon" data-default-icon="{{ asset('assets/icon/everlasting.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/icon/everlasting.png') }}" data-default-icon="{{ asset('assets/icon/everlasting.png') }}">
     <script>
         tailwind.config = {
             corePlugins: {
